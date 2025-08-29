@@ -1,5 +1,5 @@
 # docker/Dockerfile
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 # Copy source code
 COPY src /app
