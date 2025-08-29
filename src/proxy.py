@@ -12,7 +12,7 @@ from os import environ
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-WHISPER_URL = getenv("WHISPER_URL", "http://localhost:9000")
+WHISPER_URL = environ.get("WHISPER_URL", "http://localhost:9000")
 
 @app.route('/v1/audio/transcriptions', methods=['POST'])
 def transcriptions():
