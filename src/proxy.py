@@ -7,11 +7,12 @@ Converts OpenAI API calls to whisper-asr-webservice format
 from flask import Flask, request, jsonify
 import requests
 import logging
+from os import environ
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
-WHISPER_URL = "http://localhost:9000"
+WHISPER_URL = getenv("WHISPER_URL", "http://localhost:9000")
 
 @app.route('/v1/audio/transcriptions', methods=['POST'])
 def transcriptions():
