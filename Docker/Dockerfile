@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir flask requests
 # Expose container port
 EXPOSE 9001
 
+# Set the endpoint for Whisper ASR Webservice API
 ENV WHISPER_URL=http://localhost:9000
 
 # Start the service
