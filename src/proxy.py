@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-OpenAI API to Whisper-ASR-Webservice Proxy
-Converts OpenAI API calls to whisper-asr-webservice format
+Proxy: Whisper OpenAI's API to Whisper ASR Webservice's API
+Converts OpenAI API calls to Whisper ASR Webservice API format
 """
 
 from flask import Flask, request, jsonify
@@ -78,5 +78,7 @@ def health():
 
 if __name__ == '__main__':
     print("Starting OpenAI to Whisper-ASR proxy on port 9001...")
-    print("Point Open WebUI to: http://localhost:9001")
-    app.run(host='0.0.0.0', port=9001, debug=False)
+    print("Point source to: http://localhost:9001")
+    debug_flag = environ.get("DEBUG", "False").lower()
+    debug = debug_flag in ("true")
+    app.run(host='0.0.0.0', port=9001, debug=debug)
