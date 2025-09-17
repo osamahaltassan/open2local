@@ -27,13 +27,12 @@ OPENAI_TO_WHISPER_FORMAT = {
     'verbose_json': 'json',  # Whisper returns same JSON regardless
 }
 
-def log_info(req_id, message):
-    """Helper function for consistent logging format"""
-    app.logger.info(f"[{req_id}] {message}")
-
-def log_error(req_id, message, exc_info=False):
-    """Helper function for consistent error logging format"""
-    app.logger.error(f"[{req_id}] {message}", exc_info=exc_info)
+def safe_json_or_text(response):
+    """Helper function to safely parse JSON or return text"""
+    try:
+        return response.json()
+    except ValueError:
+        return {"text": response.text}
 
 def check_whisper_health():
     """Check if the Whisper service is healthy"""
@@ -46,7 +45,7 @@ def check_whisper_health():
 @app.route('/v1/audio/transcriptions', methods=['POST'])
 def transcriptions():
     req_id = str(uuid4())[:8]
-    log_info(req_id, "Starting transcription request")
+    app.logger.info(f"[{req_id}] Starting transcription request")
     
     try:
         # Validate file upload
@@ -77,27 +76,20 @@ def transcriptions():
             timeout=TIMEOUT
         )
         
-        # Handle response with single JSON parsing approach
+        # Handle response
         if response.status_code != 200:
-            try:
-                error_data = response.json()
-                return jsonify(error_data), response.status_code
-            except ValueError:
-                return response.text, response.status_code, {'Content-Type': 'text/plain'}
+            result = safe_json_or_text(response)
+            return jsonify(result), response.status_code
         
         # Handle successful response
-        try:
-            result = response.json()
-            openai_response = {"text": result.get('text', '')}
-            if 'segments' in result:
-                openai_response['segments'] = result['segments']
-            return jsonify(openai_response)
-        except ValueError:
-            # Fallback for non-JSON responses
-            return jsonify({"text": response.text})
+        result = safe_json_or_text(response)
+        openai_response = {"text": result.get('text', '')}
+        if 'segments' in result:
+            openai_response['segments'] = result['segments']
+        return jsonify(openai_response)
                 
     except Exception as e:
-        log_error(req_id, f"Proxy error: {str(e)}", exc_info=True)
+        app.logger.error(f"[{req_id}] Proxy error: {str(e)}", exc_info=True)
         return jsonify({"error": "Internal proxy error"}), 500
 
 @app.route('/health', methods=['GET'])
@@ -105,5 +97,6 @@ def health():
     if check_whisper_health():
         return jsonify({"status": "healthy", "whisper": "ok"})
     else:
-        app.logger.error("Health check failed: Whisper service unreachable")
+        if DEBUG_FLAG:
+            app.logger.warning("Health check failed: Whisper service unreachable")
         return jsonify({"status": "unhealthy", "whisper": "unreachable"}), 503

@@ -29,7 +29,7 @@ USER proxyuser
 # Expose port
 EXPOSE 9001
 
-# Environment variables
+# Variables
 ENV WHISPER_URL=http://localhost:9000 \
     DEBUG=false \
     WHISPER_TIMEOUT=300
