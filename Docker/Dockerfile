@@ -1,21 +1,23 @@
-# Docker/Dockerfile
 FROM python:3.11-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache gcc musl-dev linux-headers
 
-# Set working directory
+# Copy requirements
+COPY Docker/requirements.txt /build/requirements.txt
 WORKDIR /build
 
-# Copy requirements from the same directory (Docker folder)
-COPY Docker/requirements.txt .
-RUN pip install --no-cache-dir --target=/install -r requirements.txt
+# Install all dependencies to a directory
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # Final stage
 FROM python:3.11-alpine
 
 # Copy installed packages from builder stage
-COPY --from=builder /install /usr/local/lib/python3.11/site-packages
+COPY --from=builder /install /usr/local
+
+# Set working directory
+WORKDIR /app
 
 # Copy application source code
 COPY src /app
@@ -32,5 +34,5 @@ ENV WHISPER_URL=http://localhost:9000 \
     DEBUG=false \
     WHISPER_TIMEOUT=300
 
-# Run app
-CMD ["python", "/app/proxy.py"]
+# Run app with Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:9001", "--workers", "4", "proxy:app"]

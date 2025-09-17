@@ -4,7 +4,7 @@ Proxy: Whisper OpenAI's API to Whisper ASR Webservice's API
 Converts OpenAI API calls to Whisper ASR Webservice API format
 """
 
-import uuid
+from uuid import uuid4
 from flask import Flask, request, jsonify
 import requests
 import logging
@@ -45,7 +45,7 @@ def check_whisper_health():
 
 @app.route('/v1/audio/transcriptions', methods=['POST'])
 def transcriptions():
-    req_id = str(uuid.uuid4())[:8]
+    req_id = str(uuid4())[:8]
     log_info(req_id, "Starting transcription request")
     
     try:
@@ -107,7 +107,3 @@ def health():
     else:
         app.logger.error("Health check failed: Whisper service unreachable")
         return jsonify({"status": "unhealthy", "whisper": "unreachable"}), 503
-
-if __name__ == '__main__':
-    app.logger.info("Starting OpenAI to Whisper-ASR proxy on port 9001...")
-    app.run(host='0.0.0.0', port=9001, debug=DEBUG_FLAG)
