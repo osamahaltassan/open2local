@@ -3,12 +3,8 @@ FROM python:3.11-alpine AS builder
 # Install build dependencies
 RUN apk add --no-cache gcc musl-dev linux-headers
 
-# Copy requirements
-COPY Docker/requirements.txt /build/requirements.txt
-WORKDIR /build
-
-# Install all dependencies to a directory
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+# Install Python packages directly
+RUN pip install --no-cache-dir --prefix=/install Flask==2.3.2 requests==2.31.0 gunicorn==21.2.0
 
 # Final stage
 FROM python:3.11-alpine
@@ -32,7 +28,7 @@ EXPOSE 9001
 # Variables
 ENV WHISPER_URL=http://localhost:9000 \
     DEBUG=false \
-    WHISPER_TIMEOUT=300
+    WHISPER_TIMEOUT=None
 
 # Run app with Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:9001", "--workers", "4", "proxy:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:9001", "--workers", "4", "--timeout", "0", "proxy:app"]

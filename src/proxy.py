@@ -15,8 +15,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 
 # Configuration
 WHISPER_URL = environ.get("WHISPER_URL", "http://localhost:9000")
-TIMEOUT = int(environ.get("WHISPER_TIMEOUT", "300"))
-DEBUG_FLAG = environ.get("DEBUG", "False").lower() == "true"
+TIMEOUT = int(environ.get("WHISPER_TIMEOUT", "None"))
+DEBUG_FLAG = environ.get("DEBUG", "False").lower() == "false"
 
 # Constants
 OPENAI_TO_WHISPER_FORMAT = {
@@ -73,7 +73,7 @@ def transcriptions():
             f"{WHISPER_URL}/asr",
             files={'audio_file': (audio_file.filename, audio_data, audio_file.content_type)},
             params=params,
-            timeout=TIMEOUT
+            timeout=None
         )
         
         # Handle response
